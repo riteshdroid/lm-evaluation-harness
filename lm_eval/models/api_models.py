@@ -312,27 +312,16 @@ class TemplateAPI(TemplateLM):
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
         try:
-
-            message_tem = self.create_message(messages)
-            print("message_template", message_tem)
-            
-            json_op=self._create_payload(
-                    message_tem,
+            response = requests.post(
+                self.base_url,
+                json=self._create_payload(
+                    self.create_message(messages),
                     generate=generate,
                     gen_kwargs=gen_kwargs,
                     **kwargs,
-                )
-
-            print("json_payload", json_op)
-            
-            response = requests.post(
-                self.base_url,
-                json_op,
+                ),
                 headers=self.header,
             )
-
-            print("response format", response.json())
-            
             if not response.ok:
                 eval_logger.warning(
                     f"API request failed with error message: {response.text}. Retrying..."
@@ -480,13 +469,8 @@ class TemplateAPI(TemplateLM):
             sort_fn=_collate,
             group_by=None,
         )
-
-        print("re_ord", re_ord)
         # if concurrent then we'll batch in the async context
         chunked = re_ord.get_batched(n=self._batch_size if self._concurrent <= 1 else 0)
-
-        print("chunked", chunked)
-        
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
@@ -515,9 +499,6 @@ class TemplateAPI(TemplateLM):
                         pbar.update(1)
         else:
             inputs, ctxlens, cache_keys = self.batch_logliklehood_requests(chunked)
-
-            print("inputs, ctxlens, cache_keys", inputs, ctxlens, cache_keys)
-            
             res = itertools.chain.from_iterable(
                 asyncio.run(
                     self.get_batched_requests(
@@ -526,7 +507,6 @@ class TemplateAPI(TemplateLM):
                 )
             )
 
-        print("res111", res)
         return re_ord.get_original(res)
 
     def generate_until(
