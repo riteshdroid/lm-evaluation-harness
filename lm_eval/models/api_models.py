@@ -465,6 +465,9 @@ class TemplateAPI(TemplateLM):
         ), "Tokenizer is required for loglikelihood tasks to compute context lengths."
         res = []
 
+        print("_loglikelihood_token_requestssss", requests)
+        print("\n\n")
+        
         def _collate(req: LogLikelihoodInputs):
             """Defines the key for the sorted method"""
             # the negative sign on len(toks) sorts descending - this has a few advantages:
@@ -484,10 +487,25 @@ class TemplateAPI(TemplateLM):
         )
         # if concurrent then we'll batch in the async context
         chunked = re_ord.get_batched(n=self._batch_size if self._concurrent <= 1 else 0)
+
+        print("_loglikelihood_token_chunked", chunked)
+        
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
+
+                print("_loglikelihood_token_chunk", [chunk])
+                
                 inputs, ctxlens, cache_keys = self.batch_logliklehood_requests([chunk])
+
+                print("_loglikelihood_token_inputs", inputs)
+                print("\n\n")
+                print("_loglikelihood_token_ctxlens", ctxlens)
+                print("\n\n")
+                print("_loglikelihood_token_cache_keys", cache_keys)
+                print("\n\n")
+                print("_loglikelihood_token_self.create_message", self.create_message(inputs))
+                print("\n\n")
 
                 outputs = retry(
                     stop=stop_after_attempt(self.max_retries),
@@ -496,6 +514,14 @@ class TemplateAPI(TemplateLM):
                 )(self.model_call)(messages=self.create_message(inputs), generate=False)
                 if isinstance(outputs, dict):
                     outputs = [outputs]
+
+                print("_loglikelihood_token_outputs", outputs)
+                print("\n\n")
+                print("_loglikelihood_token_parse_logprobs", self.parse_logprobs(
+                        outputs=outputs, tokens=inputs, ctxlens=ctxlens
+                    ))
+                print("\n\n")
+                
                 for answer_, cache_key in zip(
                     self.parse_logprobs(
                         outputs=outputs, tokens=inputs, ctxlens=ctxlens
@@ -511,7 +537,20 @@ class TemplateAPI(TemplateLM):
                             )
                         pbar.update(1)
         else:
+
+            print("is it here???")
+            print("\n\n")
+            
             inputs, ctxlens, cache_keys = self.batch_logliklehood_requests(chunked)
+
+            print("1_loglikelihood_token_inputs", inputs)
+            print("\n\n")
+            print("1_loglikelihood_token_ctxlens", ctxlens)
+            print("\n\n")
+            print("1_loglikelihood_token_cache_keys", cache_keys)
+            print("\n\n")
+
+            
             res = itertools.chain.from_iterable(
                 asyncio.run(
                     self.get_batched_requests(
@@ -520,6 +559,9 @@ class TemplateAPI(TemplateLM):
                 )
             )
 
+        print("_loglikelihood_token_re_ord.get_original", re_ord.get_original(res))
+        print("\n\n")
+        
         return re_ord.get_original(res)
 
     def generate_until(
