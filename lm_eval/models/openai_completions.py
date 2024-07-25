@@ -152,7 +152,7 @@ class LocalChatCompletion(LocalCompletionsAPI):
 
 
 @register_model("openai-completions",)
-class OpenAIChatCompletion(LocalCompletionsAPI):
+class OpenAICompletionsAPI(LocalCompletionsAPI):
     def __init__(
         self,
         base_url="https://api.openai.com/v1/chat/completions",
