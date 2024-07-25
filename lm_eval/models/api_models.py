@@ -312,16 +312,27 @@ class TemplateAPI(TemplateLM):
         # !!! Copy: shared dict for each request, need new object !!!
         gen_kwargs = copy.deepcopy(gen_kwargs)
         try:
-            response = requests.post(
-                self.base_url,
-                json=self._create_payload(
-                    self.create_message(messages),
+
+            message_tem = self.create_message(messages)
+            print("message_template", message_tem)
+            
+            json_op=self._create_payload(
+                    message_tem,
                     generate=generate,
                     gen_kwargs=gen_kwargs,
                     **kwargs,
-                ),
+                )
+
+            print("json_payload", json_op)
+            
+            response = requests.post(
+                self.base_url,
+                json_op,
                 headers=self.header,
             )
+
+            print("response format", response.json())
+            
             if not response.ok:
                 eval_logger.warning(
                     f"API request failed with error message: {response.text}. Retrying..."
