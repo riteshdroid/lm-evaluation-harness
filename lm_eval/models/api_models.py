@@ -469,8 +469,13 @@ class TemplateAPI(TemplateLM):
             sort_fn=_collate,
             group_by=None,
         )
+
+        print("re_ord", re_ord)
         # if concurrent then we'll batch in the async context
         chunked = re_ord.get_batched(n=self._batch_size if self._concurrent <= 1 else 0)
+
+        print("chunked", chunked)
+        
         if self._concurrent <= 1:
             pbar = tqdm(desc="Requesting API", total=len(requests))
             for chunk in chunked:
@@ -499,6 +504,9 @@ class TemplateAPI(TemplateLM):
                         pbar.update(1)
         else:
             inputs, ctxlens, cache_keys = self.batch_logliklehood_requests(chunked)
+
+            print("inputs, ctxlens, cache_keys", inputs, ctxlens, cache_keys)
+            
             res = itertools.chain.from_iterable(
                 asyncio.run(
                     self.get_batched_requests(
@@ -507,6 +515,7 @@ class TemplateAPI(TemplateLM):
                 )
             )
 
+        print("res111", res)
         return re_ord.get_original(res)
 
     def generate_until(
