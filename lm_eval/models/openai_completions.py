@@ -151,13 +151,11 @@ class LocalChatCompletion(LocalCompletionsAPI):
         )
 
 
-@register_model(
-    "openai-completions",
-)
-class OpenAICompletionsAPI(LocalCompletionsAPI):
+@register_model("openai-completions",)
+class OpenAIChatCompletion(LocalCompletionsAPI):
     def __init__(
         self,
-        base_url="https://api.openai.com/v1/completions",
+        base_url="https://api.openai.com/v1/chat/completions",
         tokenizer_backend="tiktoken",
         **kwargs,
     ):
@@ -184,28 +182,28 @@ class OpenAICompletionsAPI(LocalCompletionsAPI):
         return super()._loglikelihood_tokens(requests, **kwargs)
 
 
-@register_model("openai-chatcompletions")
-class OpenAIChatCompletion(LocalChatCompletion):
-    def __init__(
-        self,
-        base_url="https://api.openai.com/v1/chat/completions",
-        tokenizer_backend=None,
-        tokenized_requests=False,
-        **kwargs,
-    ):
-        super().__init__(
-            base_url=base_url,
-            tokenizer_backend=tokenizer_backend,
-            tokenized_requests=tokenized_requests,
-            **kwargs,
-        )
+# @register_model("openai-chatcompletions")
+# class OpenAIChatCompletion(LocalChatCompletion):
+#     def __init__(
+#         self,
+#         base_url="https://api.openai.com/v1/chat/completions",
+#         tokenizer_backend=None,
+#         tokenized_requests=False,
+#         **kwargs,
+#     ):
+#         super().__init__(
+#             base_url=base_url,
+#             tokenizer_backend=tokenizer_backend,
+#             tokenized_requests=tokenized_requests,
+#             **kwargs,
+#         )
 
-    @cached_property
-    def api_key(self):
-        """Override this property to return the API key for the API request."""
-        key = os.environ.get("OPENAI_API_KEY", None)
-        if key is None:
-            raise ValueError(
-                "API key not found. Please set the OPENAI_API_KEY environment variable."
-            )
-        return key
+#     @cached_property
+#     def api_key(self):
+#         """Override this property to return the API key for the API request."""
+#         key = os.environ.get("OPENAI_API_KEY", None)
+#         if key is None:
+#             raise ValueError(
+#                 "API key not found. Please set the OPENAI_API_KEY environment variable."
+#             )
+#         return key
