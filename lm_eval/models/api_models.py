@@ -316,7 +316,7 @@ class TemplateAPI(TemplateLM):
 
             crms = self.create_message(messages)
             print("self.create_message", crms)
-            print(
+            
 
             json_paywow = self._create_payload(
                     crms,
